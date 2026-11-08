@@ -1,0 +1,44 @@
+name: TurboQuant mixed cache CUDA validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: [self-hosted, Windows, X64, turboquant-gpu-2e205baef0]
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: powershell
+    env:
+      MASK_MACHINE: ${{ secrets.MASK_MACHINE }}
+      MASK_USER: ${{ secrets.MASK_USER }}
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+      OMP_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '2'
+      GIT_TERMINAL_PROMPT: '0'
+    steps:
+      - name: Check out the reviewed commit
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP 'turboquant-source'
+          git -c init.templateDir= init --quiet $dir
+          if ($LASTEXITCODE -ne 0) { throw 'git init failed' }
+          git -C $dir -c credential.helper= fetch --quiet --depth=1 https://github.com/bingdongni/turboquant.git 965845934694fc70f5b14c70f7f581507e488a69
+          if ($LASTEXITCODE -ne 0) { throw 'git fetch failed' }
+          git -C $dir checkout --quiet --detach FETCH_HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'git checkout failed' }
+          if ((git -C $dir rev-parse HEAD).Trim() -ne '965845934694fc70f5b14c70f7f581507e488a69') { throw 'Unexpected commit' }
+          Write-Host 'Source commit: 965845934694fc70f5b14c70f7f581507e488a69'
+      - name: Run unit tests on CPU and CUDA
+        run: |
+          nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+          if ($LASTEXITCODE -ne 0) { throw 'nvidia-smi failed' }
+          $dir = Join-Path $env:RUNNER_TEMP 'turboquant-source'
+          Set-Location $dir
+          & 'C:\PR\kvpress-gpu-venv-20261107\Scripts\python.exe' -c "import torch; assert torch.cuda.is_available(); print('GPU:', torch.cuda.get_device_name(0), 'PyTorch:', torch.__version__, 'CUDA:', torch.version.cuda)"
+          if ($LASTEXITCODE -ne 0) { throw 'CUDA check failed' }
+          & 'C:\PR\kvpress-gpu-venv-20261107\Scripts\python.exe' -m pytest src/test_turboquant.py -q --tb=short
+          if ($LASTEXITCODE -ne 0) { throw 'TurboQuant tests failed' }
