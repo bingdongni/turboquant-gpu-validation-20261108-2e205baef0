@@ -1,0 +1,56 @@
+2026-11-08T05:58:19.4984955Z Current runner version: '2.338.2'
+2026-11-08T05:58:19.4991684Z Runner name: 'ephemeral-turboquant-gpu'
+2026-11-08T05:58:19.4992412Z Runner group name: 'Default'
+2026-11-08T05:58:19.4993334Z Machine name: '***'
+2026-11-08T05:58:19.4996145Z ##[group]GITHUB_TOKEN Permissions
+2026-11-08T05:58:19.4998100Z Contents: read
+2026-11-08T05:58:19.4998556Z Metadata: read
+2026-11-08T05:58:19.4999087Z ##[endgroup]
+2026-11-08T05:58:19.5000843Z Secret source: Actions
+2026-11-08T05:58:19.5001920Z Cache mode: write
+2026-11-08T05:58:19.5002580Z Prepare workflow directory
+2026-11-08T05:58:19.5634058Z Prepare all required actions
+2026-11-08T05:58:19.5693862Z Complete job name: test
+2026-11-08T05:58:19.7064849Z ##[group]Run $dir = Join-Path $env:RUNNER_TEMP 'turboquant-source'
+2026-11-08T05:58:19.7066008Z $dir = Join-Path $env:RUNNER_TEMP 'turboquant-source'
+2026-11-08T05:58:19.7066834Z git -c init.templateDir= init --quiet $dir
+2026-11-08T05:58:19.7067547Z if ($LASTEXITCODE -ne 0) { throw 'git init failed' }
+2026-11-08T05:58:19.7068904Z git -C $dir -c credential.helper= fetch --quiet --depth=1 https://github.com/bingdongni/turboquant.git 965845934694fc70f5b14c70f7f581507e488a69
+2026-11-08T05:58:19.7070143Z if ($LASTEXITCODE -ne 0) { throw 'git fetch failed' }
+2026-11-08T05:58:19.7070924Z git -C $dir checkout --quiet --detach FETCH_HEAD
+2026-11-08T05:58:19.7071681Z if ($LASTEXITCODE -ne 0) { throw 'git checkout failed' }
+2026-11-08T05:58:19.7072802Z if ((git -C $dir rev-parse HEAD).Trim() -ne '965845934694fc70f5b14c70f7f581507e488a69') { throw 'Unexpected commit' }
+2026-11-08T05:58:19.7074052Z Write-Host 'Source commit: 965845934694fc70f5b14c70f7f581507e488a69'
+2026-11-08T05:58:19.7110259Z shell: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE -command ". '{0}'"
+2026-11-08T05:58:19.7111265Z env:
+2026-11-08T05:58:19.7111871Z   MASK_MACHINE: ***
+2026-11-08T05:58:19.7112339Z   MASK_USER: ***
+2026-11-08T05:58:19.7112803Z   PYTEST_DISABLE_PLUGIN_AUTOLOAD: 1
+2026-11-08T05:58:19.7113341Z   OMP_NUM_THREADS: 2
+2026-11-08T05:58:19.7113812Z   MKL_NUM_THREADS: 2
+2026-11-08T05:58:19.7114286Z   GIT_TERMINAL_PROMPT: 0
+2026-11-08T05:58:19.7114922Z ##[endgroup]
+2026-11-08T05:58:24.1800845Z Source commit: 965845934694fc70f5b14c70f7f581507e488a69
+2026-11-08T05:58:24.2401386Z ##[group]Run nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+2026-11-08T05:58:24.2402253Z nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+2026-11-08T05:58:24.2402752Z if ($LASTEXITCODE -ne 0) { throw 'nvidia-smi failed' }
+2026-11-08T05:58:24.2403157Z $dir = Join-Path $env:RUNNER_TEMP 'turboquant-source'
+2026-11-08T05:58:24.2403489Z Set-Location $dir
+2026-11-08T05:58:24.2404271Z & 'C:\PR\kvpress-gpu-venv-20261107\Scripts\python.exe' -c "import torch; assert torch.cuda.is_available(); print('GPU:', torch.cuda.get_device_name(0), 'PyTorch:', torch.__version__, 'CUDA:', torch.version.cuda)"
+2026-11-08T05:58:24.2405160Z if ($LASTEXITCODE -ne 0) { throw 'CUDA check failed' }
+2026-11-08T05:58:24.2405698Z & 'C:\PR\kvpress-gpu-venv-20261107\Scripts\python.exe' -m pytest src/test_turboquant.py -q --tb=short
+2026-11-08T05:58:24.2406283Z if ($LASTEXITCODE -ne 0) { throw 'TurboQuant tests failed' }
+2026-11-08T05:58:24.2437880Z shell: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE -command ". '{0}'"
+2026-11-08T05:58:24.2438310Z env:
+2026-11-08T05:58:24.2438820Z   MASK_MACHINE: ***
+2026-11-08T05:58:24.2439088Z   MASK_USER: ***
+2026-11-08T05:58:24.2439314Z   PYTEST_DISABLE_PLUGIN_AUTOLOAD: 1
+2026-11-08T05:58:24.2439584Z   OMP_NUM_THREADS: 2
+2026-11-08T05:58:24.2439792Z   MKL_NUM_THREADS: 2
+2026-11-08T05:58:24.2440002Z   GIT_TERMINAL_PROMPT: 0
+2026-11-08T05:58:24.2440210Z ##[endgroup]
+2026-11-08T05:58:26.1485042Z NVIDIA GeForce RTX 4060 Laptop GPU, 617.42, 8188 MiB
+2026-11-08T05:58:31.2854225Z GPU: NVIDIA GeForce RTX 4060 Laptop GPU PyTorch: 2.6.0+cu124 CUDA: 12.4
+2026-11-08T05:58:44.9038070Z .......................................                                  [100%]
+2026-11-08T05:58:44.9038551Z 39 passed in 12.20s
+2026-11-08T05:58:45.3089678Z Cleaning up orphan processes
